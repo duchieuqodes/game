@@ -1,4 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
+const keep_alive = require('./keep_alive.js');
 const mongoose = require('mongoose');
 
 mongoose.connect('mongodb+srv://duchieufaryoung0:80E9gUahdOXmGKuy@cluster0.6nlv1cv.mongodb.net/telegram_bot_db?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
