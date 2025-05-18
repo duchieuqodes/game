@@ -121,24 +121,19 @@
             padding: 10px 15px;
             font-weight: bold;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
+            transition: all 0.3s;
         }
 
         .score-display:hover {
             transform: scale(1.05);
         }
-
-        .countdown {
-            font-size: 3rem;
-            font-weight: bold;
-            color: var(--primary);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        
+        /* Thuộc tính cho hiệu ứng điểm số */
+        .scale-125 {
+            transform: scale(1.25);
+            transition: transform 0.2s;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
         }
 
         .btn-primary {
@@ -166,15 +161,33 @@
 
         .hit-effect {
             position: absolute;
-            font-size: 24px;
+            font-size: 36px;
             font-weight: bold;
-            animation: floatUp 1s ease-out;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            animation: floatUpAndScale 1s ease-out;
             z-index: 50;
         }
 
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+        @keyframes floatUpAndScale {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1); opacity: 0; }
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            transform: translate(-50%, -50%);
+            animation: explode 0.5s ease-out forwards;
+            z-index: 49;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
         }
 
         .confetti {
@@ -208,30 +221,16 @@
                 placeholder="Username của bạn"
                 maxlength="15"
             >
-            <button id="start-btn" class="btn-primary w-full">Bắt Đầu</button>
-        </div>
-    </div>
-
-    <!-- Waiting Screen -->
-    <div id="waiting-screen" class="hidden flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 class="text-4xl md:text-6xl font-bold text-center mb-6 text-yellow-500 game-title">ĐẬP GÀ</h1>
-        <div class="w-full max-w-md p-6 rounded-2xl shadow-2xl bg-white dark:bg-gray-800">
-            <h2 class="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">Chờ đến <span class="text-yellow-500">21:30</span> để bắt đầu</h2>
-            <div class="countdown text-center mb-6" id="countdown">--:--:--</div>
-            
             <div>
-                <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">Hướng dẫn chơi</h3>
-                <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                <h3 class="text-lg font-bold mb-3 text-gray-800 dark:text-white">Hướng dẫn chơi</h3>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 mb-4">
                     <li>Nhấp vào gà để kiếm điểm (+10 điểm)</li>
                     <li>Tránh nhấp vào bom (-15 điểm)</li>
                     <li>Trò chơi kéo dài 10 phút</li>
                     <li>Cố gắng đạt điểm cao nhất có thể!</li>
                 </ul>
             </div>
-
-            <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg text-yellow-700 dark:text-yellow-300">
-                <p class="text-sm"><strong>Lưu ý:</strong> Trò chơi này chỉ có thể chơi một lần mỗi ngày vào lúc 21:30.</p>
-            </div>
+            <button id="start-btn" class="btn-primary w-full">Bắt Đầu Ngay</button>
         </div>
     </div>
 
@@ -272,7 +271,7 @@
             <div class="flex flex-col items-center space-y-3 mb-6">
                 <div class="w-full">
                     <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        <span>Điểm cao nhất của bạn trước đây</span>
+                        <span>Điểm cao nhất của bạn</span>
                         <span id="highest-score">0</span>
                     </div>
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
@@ -281,12 +280,10 @@
                 </div>
             </div>
             
-            <div class="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-xl mb-6">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Trò chơi chỉ được mở vào lúc 21:30 mỗi ngày.</p>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Hãy quay lại vào ngày mai!</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button id="play-again-btn" class="btn-primary">Chơi Lại</button>
+                <button id="return-btn" class="btn-primary bg-gray-600 hover:bg-gray-500">Trang Chủ</button>
             </div>
-            
-            <button id="return-btn" class="btn-primary w-full">Trở Về Trang Chính</button>
         </div>
     </div>
 
@@ -308,16 +305,13 @@
         let playerScore = 0;
         let gameStarted = false;
         let gameEnded = false;
-        let targetStartTime; // Set to 21:30 today
-        let gameEndTime; // 10 minutes after start
-        let gamePlayedToday = false; // Flag to track if the game has been played today
-        
-        // Constant for demo mode (for testing - set to true to start immediately)
-        const DEMO_MODE = false;
+        let gameLength = 10 * 60; // 10 minutes in seconds
+        let gameTimerInterval;
+        let chickenInterval;
+        let bombInterval;
 
         // DOM Elements
         const loginScreen = document.getElementById('login-screen');
-        const waitingScreen = document.getElementById('waiting-screen');
         const gameScreen = document.getElementById('game-screen');
         const resultsScreen = document.getElementById('results-screen');
         const usernameInput = document.getElementById('username-input');
@@ -325,25 +319,13 @@
         const playerScoreElement = document.getElementById('player-score');
         const gameTimer = document.getElementById('game-timer');
         const gameGrid = document.getElementById('game-grid');
-        const countdown = document.getElementById('countdown');
         const resultUsername = document.getElementById('result-username');
         const finalScore = document.getElementById('final-score');
         const highestScore = document.getElementById('highest-score');
         const scoreBar = document.getElementById('score-bar');
+        const playAgainBtn = document.getElementById('play-again-btn');
         const returnBtn = document.getElementById('return-btn');
         const mallet = document.getElementById('mallet');
-
-        // Check if the game has been played today
-        function checkGamePlayedToday() {
-            const lastPlayedDate = localStorage.getItem('whackChickenLastPlayed');
-            
-            if (lastPlayedDate) {
-                const today = new Date().toDateString();
-                gamePlayedToday = (lastPlayedDate === today);
-            }
-            
-            return gamePlayedToday;
-        }
 
         // Initialize game
         function initGame() {
@@ -382,45 +364,6 @@
             });
         }
 
-        // Initialize game settings
-        function initGameSettings() {
-            // Set the target start time for 21:30 today
-            const now = new Date();
-            targetStartTime = new Date(now);
-            targetStartTime.setHours(21, 30, 0, 0);
-            
-            // If it's already past 21:30, set for tomorrow
-            if (now > targetStartTime && !DEMO_MODE) {
-                targetStartTime.setDate(targetStartTime.getDate() + 1);
-            }
-            
-            // For demo purposes, start after 5 seconds
-            if (DEMO_MODE) {
-                targetStartTime = new Date(Date.now() + 5 * 1000);
-            }
-            
-            // Game will last 10 minutes
-            gameEndTime = new Date(targetStartTime.getTime() + 10 * 60 * 1000);
-            
-            // Check if the game has already been played today
-            if (checkGamePlayedToday() && !DEMO_MODE) {
-                showAlreadyPlayedMessage();
-            }
-        }
-
-        // Show message if the game was already played today
-        function showAlreadyPlayedMessage() {
-            loginScreen.classList.add('hidden');
-            waitingScreen.classList.add('hidden');
-            gameScreen.classList.add('hidden');
-            
-            // Display results screen with a message
-            resultsScreen.classList.remove('hidden');
-            returnBtn.textContent = "Đã chơi hôm nay. Quay lại ngày mai!";
-            returnBtn.disabled = true;
-            returnBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-
         // Handle click on chicken or bomb
         function handleClick(event) {
             if (!gameStarted || gameEnded) return;
@@ -449,52 +392,66 @@
             playerScoreElement.textContent = playerScore;
         }
 
-        // Show hit effect (+10 or -15)
+        // Show hit effect (+10 or -15) with improved animation
         function showHitEffect(x, y, text, color) {
+            // Create text effect
             const effect = document.createElement('div');
             effect.className = 'hit-effect';
             effect.textContent = text;
             effect.style.color = color;
             effect.style.left = x + 'px';
             effect.style.top = y + 'px';
+            
+            // Create explosion effect
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = x + 'px';
+            explosion.style.top = y + 'px';
+            
+            // Add class for color (green for positive, red for negative)
+            if (text.includes('+')) {
+                explosion.style.background = 'radial-gradient(circle, rgba(76,175,80,0.8) 0%, rgba(76,175,80,0) 70%)';
+            } else {
+                explosion.style.background = 'radial-gradient(circle, rgba(244,67,54,0.8) 0%, rgba(244,67,54,0) 70%)';
+            }
+            
+            // Add to document
+            document.body.appendChild(explosion);
             document.body.appendChild(effect);
             
+            // Show current score with animation
+            const currentScore = document.getElementById('player-score');
+            currentScore.classList.add('scale-125');
+            setTimeout(() => {
+                currentScore.classList.remove('scale-125');
+            }, 200);
+            
+            // Clean up after animation completes
             setTimeout(() => {
                 document.body.removeChild(effect);
-            }, 1000);
-        }
-
-        // Start the game countdown
-        function startGameCountdown() {
-            const countdownInterval = setInterval(() => {
-                const now = new Date();
-                const diff = targetStartTime - now;
-                
-                if (diff <= 0) {
-                    clearInterval(countdownInterval);
-                    startGame();
-                } else {
-                    const hours = Math.floor(diff / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    
-                    countdown.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                if (document.body.contains(explosion)) {
+                    document.body.removeChild(explosion);
                 }
             }, 1000);
         }
 
         // Start the game
         function startGame() {
+            // Reset game state
             gameStarted = true;
             gameEnded = false;
-            waitingScreen.classList.add('hidden');
+            playerScore = 0;
+            playerScoreElement.textContent = '0';
+            
+            // Show game screen
+            loginScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
             
             // Start the game timer
-            const gameTimerInterval = setInterval(() => {
-                const now = new Date();
-                const timeRemaining = Math.max(0, Math.floor((gameEndTime - now) / 1000));
-                
+            let timeRemaining = gameLength;
+            gameTimerInterval = setInterval(() => {
+                timeRemaining--;
                 const minutes = Math.floor(timeRemaining / 60);
                 const seconds = timeRemaining % 60;
                 gameTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -507,19 +464,27 @@
             
             // Start chicken and bomb appearances
             startChickenAndBombAppearances();
-            
-            // Mark that the game has been played today
-            localStorage.setItem('whackChickenLastPlayed', new Date().toDateString());
         }
 
         // End the game
         function endGame() {
+            // Update game state
             gameStarted = false;
             gameEnded = true;
+            
+            // Clear all intervals
+            clearInterval(gameTimerInterval);
+            
+            // Stop all chicken and bomb animations
+            document.querySelectorAll('.chicken.active, .bomb.active').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show results screen
             gameScreen.classList.add('hidden');
             resultsScreen.classList.remove('hidden');
             
-            // Save score
+            // Save score if it's a high score
             const savedHighScore = parseInt(localStorage.getItem('whackChickenHighScore') || '0');
             const newHighScore = Math.max(savedHighScore, playerScore);
             localStorage.setItem('whackChickenHighScore', newHighScore.toString());
@@ -545,56 +510,67 @@
             const chickens = document.querySelectorAll('.chicken');
             const bombs = document.querySelectorAll('.bomb');
             
-            function showRandomChicken() {
+            function showRandomChickens() {
                 if (!gameStarted || gameEnded) return;
                 
-                // Pick a random chicken
-                const randomIndex = Math.floor(Math.random() * chickens.length);
-                const chicken = chickens[randomIndex];
+                // Determine how many chickens to show (1-3)
+                const chickenCount = Math.floor(Math.random() * 3) + 1;
+                const availableIndices = Array.from({ length: chickens.length }, (_, i) => i)
+                    .filter(i => !chickens[i].classList.contains('active') && !bombs[i].classList.contains('active'));
                 
-                // Make sure the corresponding bomb is not active
-                const correspondingBomb = bombs[randomIndex];
-                if (correspondingBomb.classList.contains('active')) return;
+                // If not enough holes available, show as many as possible
+                const showCount = Math.min(chickenCount, availableIndices.length);
                 
-                // Show the chicken
-                chicken.classList.add('active');
+                // Shuffle and pick indices
+                const shuffled = availableIndices.sort(() => 0.5 - Math.random());
+                const selectedIndices = shuffled.slice(0, showCount);
                 
-                // Hide the chicken after a random time (500-1500ms)
-                const hideDelay = 500 + Math.random() * 1000;
-                setTimeout(() => {
-                    chicken.classList.remove('active');
-                }, hideDelay);
+                // Show selected chickens
+                selectedIndices.forEach(index => {
+                    const chicken = chickens[index];
+                    chicken.classList.add('active');
+                    
+                    // Hide the chicken after exactly 0.5 seconds
+                    setTimeout(() => {
+                        if (chicken.classList.contains('active')) {
+                            chicken.classList.remove('active');
+                        }
+                    }, 500);
+                });
                 
-                // Schedule next chicken appearance
-                setTimeout(showRandomChicken, 300 + Math.random() * 500);
+                // Schedule next chicken appearances
+                setTimeout(showRandomChickens, 800 + Math.random() * 500);
             }
             
             function showRandomBomb() {
                 if (!gameStarted || gameEnded) return;
                 
                 // Pick a random bomb
-                const randomIndex = Math.floor(Math.random() * bombs.length);
-                const bomb = bombs[randomIndex];
+                const availableIndices = Array.from({ length: bombs.length }, (_, i) => i)
+                    .filter(i => !chickens[i].classList.contains('active') && !bombs[i].classList.contains('active'));
                 
-                // Make sure the corresponding chicken is not active
-                const correspondingChicken = chickens[randomIndex];
-                if (correspondingChicken.classList.contains('active')) return;
+                if (availableIndices.length === 0) return;
+                
+                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                const bomb = bombs[randomIndex];
                 
                 // Show the bomb
                 bomb.classList.add('active');
                 
-                // Hide the bomb after a random time (500-1200ms)
-                const hideDelay = 500 + Math.random() * 700;
+                // Hide the bomb after a random time (500-700ms)
+                const hideDelay = 500 + Math.random() * 200;
                 setTimeout(() => {
-                    bomb.classList.remove('active');
+                    if (bomb.classList.contains('active')) {
+                        bomb.classList.remove('active');
+                    }
                 }, hideDelay);
                 
                 // Schedule next bomb appearance
-                setTimeout(showRandomBomb, 1000 + Math.random() * 2000);
+                setTimeout(showRandomBomb, 1500 + Math.random() * 1500);
             }
             
             // Start the appearances
-            showRandomChicken();
+            showRandomChickens();
             showRandomBomb();
         }
 
@@ -621,6 +597,12 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill username if saved
+            const savedUsername = localStorage.getItem('whackChickenUsername');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+            }
+            
             // Start button event listener
             startBtn.addEventListener('click', () => {
                 username = usernameInput.value.trim();
@@ -629,24 +611,22 @@
                     return;
                 }
                 
-                // Initialize game settings
-                initGameSettings();
+                // Save username for next time
+                localStorage.setItem('whackChickenUsername', username);
                 
-                if (gamePlayedToday && !DEMO_MODE) {
-                    showAlreadyPlayedMessage();
-                    return;
-                }
-                
-                loginScreen.classList.add('hidden');
-                waitingScreen.classList.remove('hidden');
-                
-                // Start countdown
-                startGameCountdown();
+                // Start the game immediately
+                startGame();
             });
             
-            // Return button
+            // Play again button
+            playAgainBtn.addEventListener('click', () => {
+                startGame();
+            });
+            
+            // Return to home button
             returnBtn.addEventListener('click', () => {
-                location.reload();
+                resultsScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
             });
             
             // Initialize the game grid
