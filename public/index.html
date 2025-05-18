@@ -386,63 +386,25 @@
             });
         }
 
-        // Initialize socket connection to the real server
+        // Simulate multiplayer with local storage for Vercel deployment
         function initSocket() {
-            // Connect to the Socket.io server
-            // When deploying to Vercel, it will use the same origin as the client
-            const serverUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:3000' // Development server
-                : window.location.origin; // Production server (Vercel)
-                
-            socket = io(serverUrl, {
-                transports: ['websocket', 'polling']
-            });
+            // Generate a random ID for this player in this session
+            socket = {
+                id: generateRandomId()
+            };
             
-            // Socket connection event handlers
-            socket.on('connect', () => {
-                console.log('Connected to server with ID:', socket.id);
-            });
+            // For persistence between page refreshes, save the ID and score to localStorage
+            if (localStorage.getItem('whackChickenPlayerId') === null) {
+                localStorage.setItem('whackChickenPlayerId', socket.id);
+            } else {
+                socket.id = localStorage.getItem('whackChickenPlayerId');
+            }
             
-            socket.on('connect_error', (err) => {
-                console.error('Connection error:', err);
-                alert('Không thể kết nối đến server. Vui lòng thử lại sau.');
-            });
+            if (localStorage.getItem('whackChickenPlayerScore') !== null) {
+                playerScore = parseInt(localStorage.getItem('whackChickenPlayerScore') || '0');
+            }
             
-            // Handle receiving the player list
-            socket.on('playerList', (players) => {
-                updatePlayerList(players);
-                // Also update the leaderboard
-                updateLeaderboard(players);
-            });
-            
-            // Handle receiving the game start time
-            socket.on('gameStartTime', (data) => {
-                targetStartTime = new Date(data.startTime);
-                console.log('Game will start at:', targetStartTime);
-            });
-            
-            // Handle game started event
-            socket.on('gameStarted', (data) => {
-                console.log('Game started!');
-                gameEndTime = new Date(data.endTime);
-                startGame();
-            });
-            
-            // Handle game ended event
-            socket.on('gameEnded', (data) => {
-                console.log('Game ended!');
-                endGame();
-                // Update final leaderboard with server data
-                updateLeaderboard(data.leaderboard);
-            });
-            
-            // Handle receiving updated leaderboard
-            socket.on('leaderboard', (players) => {
-                updateLeaderboard(players);
-            });
-            
-            // By default, set target start time to next 21:30
-            // (this will be overridden when server sends actual time)
+            // Set the target start time for 21:30
             const now = new Date();
             const targetHour = 21;
             const targetMinute = 30;
@@ -453,6 +415,98 @@
                 // If 21:30 today has passed, set to tomorrow
                 targetStartTime.setDate(targetStartTime.getDate() + 1);
             }
+            
+            // For demo purposes only, make it start 30 seconds from now
+            if (window.location.search.includes('demo=true') || 
+                localStorage.getItem('whackChickenDemoMode') === 'true') {
+                localStorage.setItem('whackChickenDemoMode', 'true');
+                targetStartTime = new Date(Date.now() + 30 * 1000);
+            }
+            
+            // Get or create the global player list from localStorage
+            let players = JSON.parse(localStorage.getItem('whackChickenPlayers') || '[]');
+            
+            // Check if this player already exists
+            const existingPlayerIndex = players.findIndex(p => p.id === socket.id);
+            if (existingPlayerIndex === -1) {
+                // Add this player
+                players.push({
+                    id: socket.id,
+                    username: username,
+                    score: playerScore
+                });
+            } else {
+                // Update the username
+                players[existingPlayerIndex].username = username;
+                players[existingPlayerIndex].score = playerScore;
+            }
+            
+            // Add some simulated players if there aren't enough
+            const botNames = ['GàCon123', 'SuperWhacker', 'ChickenHunter', 'BombDodger', 'FastClicker', 
+                             'CúcCu', 'ĐậpLiênTục', 'ProChicken', 'SiêuThủ', 'Vua Đập Gà'];
+            
+            while (players.length < 10) {
+                const randomName = botNames[Math.floor(Math.random() * botNames.length)];
+                players.push({
+                    id: 'bot_' + generateRandomId(),
+                    username: randomName + Math.floor(Math.random() * 100),
+                    score: Math.floor(Math.random() * 20) // Random initial score
+                });
+            }
+            
+            localStorage.setItem('whackChickenPlayers', JSON.stringify(players));
+            
+            // Update UI
+            updatePlayerList(players);
+            updateLeaderboard(players);
+            
+            // Start a periodic leaderboard update to simulate other players scoring
+            window.leaderboardUpdateInterval = setInterval(() => {
+                if (!gameStarted) return;
+                
+                // Get current players
+                let currentPlayers = JSON.parse(localStorage.getItem('whackChickenPlayers') || '[]');
+                
+                // Update bot scores randomly
+                currentPlayers = currentPlayers.map(player => {
+                    if (player.id !== socket.id && player.id.startsWith('bot_')) {
+                        if (Math.random() > 0.7) { // 30% chance of score change
+                            // 80% chance to gain points, 20% to lose
+                            const scoreChange = Math.random() > 0.2 ? 10 : -15;
+                            player.score = Math.max(0, player.score + scoreChange);
+                        }
+                    }
+                    return player;
+                });
+                
+                // Update our player's score
+                const ourPlayerIndex = currentPlayers.findIndex(p => p.id === socket.id);
+                if (ourPlayerIndex !== -1) {
+                    currentPlayers[ourPlayerIndex].score = playerScore;
+                }
+                
+                // Save and update UI
+                localStorage.setItem('whackChickenPlayers', JSON.stringify(currentPlayers));
+                updateLeaderboard(currentPlayers);
+                
+            }, 1500);
+            
+            // Check if it's time to start the game
+            window.startTimeCheckInterval = setInterval(() => {
+                const now = new Date();
+                if (now >= targetStartTime && !gameStarted) {
+                    clearInterval(window.startTimeCheckInterval);
+                    const tenMinutesLater = new Date(targetStartTime.getTime() + 10 * 60 * 1000);
+                    gameEndTime = tenMinutesLater;
+                    
+                    // For demo mode, make it only 1 minute
+                    if (localStorage.getItem('whackChickenDemoMode') === 'true') {
+                        gameEndTime = new Date(targetStartTime.getTime() + 1 * 60 * 1000);
+                    }
+                    
+                    startGame();
+                }
+            }, 1000);
         }
 
         // Generate random ID (for demo purposes)
@@ -610,11 +664,8 @@
             
             playerScoreElement.textContent = playerScore;
             
-            // Send score to server
-            socket.emit('score', {
-                username: username,
-                score: playerScore
-            });
+            // Update player score in localStorage
+            updatePlayerScore();
         }
 
         // Show hit effect (+10 or -15)
@@ -783,12 +834,10 @@
                     return;
                 }
                 
+                // Update username first before initializing
                 initSocket();
                 loginScreen.classList.add('hidden');
                 waitingScreen.classList.remove('hidden');
-                
-                // Join the game
-                socket.emit('join', { username });
                 
                 // Start countdown
                 startGameCountdown();
@@ -803,88 +852,30 @@
             initGame();
         });
 
-        // For Vercel deployment, the following would be needed:
-        // index.js would contain the client-side code (much of what's in this script)
-        // server.js would contain the server-side Socket.io implementation
-        // Here's a minimal implementation:
-
-        /*
-        // server.js for Vercel deployment
-        const http = require('http');
-        const { Server } = require('socket.io');
-        const express = require('express');
-        const app = express();
-        const server = http.createServer(app);
-        const io = new Server(server);
-
-        // Store players and game state
-        const players = {};
-        let gameStarted = false;
-        let gameStartTime = null;
-
-        // Function to get the next 21:30 time
-        function getNext2130() {
-            const now = new Date();
-            const targetTime = new Date(now);
-            targetTime.setHours(21, 30, 0, 0);
-            if (targetTime < now) {
-                // If 21:30 today has passed, set to tomorrow
-                targetTime.setDate(targetTime.getDate() + 1);
+        // Update player score and save to localStorage
+        function updatePlayerScore() {
+            localStorage.setItem('whackChickenPlayerScore', String(playerScore));
+            
+            // Get current players
+            let players = JSON.parse(localStorage.getItem('whackChickenPlayers') || '[]');
+            
+            // Update our player's score
+            const ourPlayerIndex = players.findIndex(p => p.id === socket.id);
+            if (ourPlayerIndex !== -1) {
+                players[ourPlayerIndex].score = playerScore;
+                localStorage.setItem('whackChickenPlayers', JSON.stringify(players));
             }
-            return targetTime;
         }
-
-        // Set game start time to the next 21:30
-        gameStartTime = getNext2130();
-
-        // Socket.io connection handling
-        io.on('connection', (socket) => {
-            console.log('User connected:', socket.id);
-            
-            // Handle player joining
-            socket.on('join', (data) => {
-                players[socket.id] = {
-                    id: socket.id,
-                    username: data.username,
-                    score: 0
-                };
-                
-                // Send all players list to everyone
-                io.emit('playerList', Object.values(players));
-                
-                // Send game start time to the new player
-                socket.emit('gameStartTime', { startTime: gameStartTime.getTime() });
-            });
-            
-            // Handle score updates
-            socket.on('score', (data) => {
-                if (players[socket.id]) {
-                    players[socket.id].score = data.score;
-                    
-                    // Send updated leaderboard to all players
-                    io.emit('leaderboard', Object.values(players));
-                }
-            });
-            
-            // Handle disconnection
-            socket.on('disconnect', () => {
-                console.log('User disconnected:', socket.id);
-                delete players[socket.id];
-                
-                // Send updated player list
-                io.emit('playerList', Object.values(players));
-            });
+        
+        // Cleanup function to clear timers when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (window.leaderboardUpdateInterval) {
+                clearInterval(window.leaderboardUpdateInterval);
+            }
+            if (window.startTimeCheckInterval) {
+                clearInterval(window.startTimeCheckInterval);
+            }
         });
-
-        // Serve static files
-        app.use(express.static('public'));
-
-        // Start server
-        const PORT = process.env.PORT || 3000;
-        server.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
-        */
     </script>
 </body>
 </html>
