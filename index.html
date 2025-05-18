@@ -55,25 +55,67 @@
             box-shadow: inset 0 10px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .chicken, .bomb {
+        .chicken, .bomb, .item {
             position: absolute;
             bottom: -100%;
             left: 50%;
             transform: translateX(-50%);
-            transition: bottom 0.1s ease-in;
+            transition: bottom 0.2s ease-out;
             cursor: pointer;
-            width: 85%; /* Tăng kích thước để dễ bấm hơn */
+            width: 75%; /* Điều chỉnh kích thước */
             height: auto;
         }
         
         .chicken {
-            /* Thêm vùng nhấp chuột thoải mái hơn cho gà */
+            /* Điều chỉnh kích thước con gà */
+            width: 70%;
             padding: 5px;
             margin: -5px;
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
         }
 
-        .chicken.active, .bomb.active {
+        .bomb {
+            width: 60%;
+            filter: drop-shadow(2px 2px 4px rgba(255, 0, 0, 0.3));
+        }
+
+        .item {
+            width: 50%;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+        }
+
+        .chicken.active, .bomb.active, .item.active {
             bottom: 0;
+        }
+        
+        .chicken.active {
+            animation: bob 0.65s infinite alternate;
+        }
+        
+        .bomb.active {
+            animation: shake 0.5s infinite alternate;
+        }
+        
+        .item.active {
+            animation: float 0.8s infinite alternate;
+        }
+        
+        @keyframes bob {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(-53%); }
+            25% { transform: translateX(-47%); }
+            50% { transform: translateX(-53%); }
+            75% { transform: translateX(-47%); }
+            100% { transform: translateX(-50%); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateX(-50%) rotate(-5deg); }
+            100% { transform: translateX(-50%) rotate(5deg) translateY(-15px); }
         }
 
         .grass {
@@ -84,6 +126,16 @@
             background-color: var(--grass);
             border-radius: 50% 50% 0 0;
             z-index: 10;
+        }
+        
+        .shake-effect {
+            animation: shake-screen 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake-screen {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
 
         .mallet {
@@ -342,10 +394,16 @@
                 hole.className = 'hole aspect-square';
                 hole.innerHTML = `
                     <div class="grass"></div>
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGRTc3NyIgZD0iTTEyLDJDMTUuMzEsMkgxNy4xMkMxOC43NiwyIDIwLDMuMjQgMjAsNC44OEMyMCw3LjM4IDE3LjMxLDkuMjIgMTUsMTAuNUMxNCwxMS4xNSAxMywxMi4wNSAxMywxM0MxMywxMy45NyAxMy45LDE1LjUgMTUsMTYuNUMxNywxOCAxOS4xMSwyMCAyMCwyMUgxMkg0QzUsMjAgNi44OCwxOSA4LjUsMThDOS41LDE3LjUgMTEsMTYuMjUgMTEsMTQuNUMxMSwxMy41IDEwLDEyLjEgOSwxMS41QzYsOSA0LDcgNCw0LjlDNCwzLjI0IDUuMjQsMiA2Ljg4LDJIOSIvPjxwYXRoIGZpbGw9IiNGRjlBMDAiIGQ9Ik05LDEzSDcuNVY5SDlWMTNaTTE2LjUsMTNIMTVWOUgxNi41VjEzWiIvPjxwYXRoIGZpbGw9IiNFNjU3MDAiIGQ9Ik0xMywyMEgxMUMxMSwxOSAxMC40NiwxNyA5LDE2SDE1QzEzLjYsMTcgMTMsMTkgMTMsMjBaIi8+PHBhdGggZmlsbD0iI0ZGNTU1NSIgZD0iTTEyLDcuNUMxMC4yOCw3LjUgOS40LDguMjUgOSw5LjVDMTAsOS41IDExLjUsOS41IDEyLDkuNUMxMi4zMSw5LjUgMTQsOS40NSAxNSw5LjVDMTQuNSw4LjIgMTMuNzgsNy41IDEyLDcuNVoiLz48L3N2Zz4=" 
+                    <img src="https://img.upanh.tv/2025/05/18/ChatGPT-Image-22_13_32-18-thg-5-2025.th.png" 
                         class="chicken" data-index="${i}" alt="Chicken">
                     <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzMzMzMzMyIgZD0iTTExLjUsNUw4LDJMMiw4TDUsMTEuNUwxMS41LDVaIi8+PHBhdGggZmlsbD0iI0ZGRTc3NyIgZD0iTTIwLDE1TDIwLDEyLjUiLz48cGF0aCBmaWxsPSIjRkZDRTAwIiBkPSJNMTMuNSw3TDEwLDEwLjVMMTMuNSwxNEwxNywxMC41TDEzLjUsN1oiLz48cGF0aCBmaWxsPSIjRkYwMDAwIiBkPSJNMjAsNUgxNy41TDE1LDEuNUwxMi41LDVIMTBMMTI1LDEwLjVMMTAsMTZIMTIuNUwxNSwxOS41TDE3LjUsMTZIMjBMMTcuNSwxMC41TDIwLDVaIi8+PC9zdmc+" 
                         class="bomb" data-index="${i}" alt="Bomb">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGRDcwMCIgZD0iTTEyLDFMMTUuNSw4LjVIMTlMMTMuNSwxMy41TDE1LjUsMjJMMTIsMTdMMi41LDIySDE5LjVIMjJMMTUuNSwyMkwxNy41LDEzLjVMMTIsOC41TDYuNSwxMy41TDguNSwyMkw1LDE3TDEuNSwxMy41TDguNSw4LjVIMTIiLz48L3N2Zz4=" 
+                        class="star item" data-index="${i}" data-type="star" alt="Star">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzVEM0JFNyIgZD0iTTExLDJDMTMuMjEsMiAxNSwzLjc5IDE1LDZWMTBIMTIuOUMxMi41NCwxMC4wMSAxMi4yNiwxMC4zMyAxMi4yNywxMC42OUMxMi4yOCwxMS4wNyAxMi41OSwxMS4zNyAxMi45NywxMS4zN0gxNVYxNy4ySDE1QzE1LDE4Ljc1IDE1LjAyLDE5LjA5IDE1LjAyLDE5LjA5QzE1LjAyLDIwLjA0IDE0LjI1LDIwLjk3IDEzLjI1LDIxLjIxQzEyLjI1LDIxLjQ1IDExLjIyLDIxLjA0IDEwLjY3LDIwLjE2QzguOSwxNy41IDcsMTQuOTQgNSwxMi4zOEM0LjcyLDEyLjA4IDQuMDgsMTAgNC4wOCwxMEMzLjksOS44NSAzLjc3LDkuNjMgMy43Nyw5LjNDMy43Nyw4Ljk1IDMuODcsOC41IDQuMjUsOC4yOEM0LjkxLDcuODggNS44Nyw3LjkxIDYuNSw4LjM0QzcuMTIsOC43NyA4LDkuODkgOCw5Ljg5VjYuNUM4LDQgOS43OSwyIDEyLDJIOnb9Ii8+PC9zdmc+"
+                        class="potion item" data-index="${i}" data-type="potion" alt="Potion">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0YyOTkzQyIgZD0iTTEyLDVMMTIuNzIsNS4xTDEzLjQsNS4yMkwxNCw1LjM4TDE0LjU3LDUuNTlMMTUuMSw1Ljg1TDE1LjU5LDYuMTZMMTYuMDMsNi41TDE2LjQzLDYuOUwxNi43OSw3LjM0TDE3LjEsNy44M0wxNy4zNSw4LjM1TDE3LjU1LDguOTFMMTcuNyw5LjVMMTcuOCwxMC4xMkwxNy44NSwxMC43NkwxNy44NSwxMS40MUwxNy44LDEyLjA1TDE3LjcsMTIuNjhMMTcuNTUsMTMuMjlMMTcuMzUsMTMuODdMMTcuMSwxNC40MkwxNi43OSwxNC45M0wxNi40MywxNS40TDE2LjAzLDE1Ljg0TDE1LjU5LDE2LjIyTDE1LjEsMTYuNTVMMTQuNTcsMTYuODNMMTQsMTcuMDVMMTMuNCwxNy4yMkwxMi43MiwxNy4zNEwxMiwxNy40TDExLjI3LDE3LjRMMTAuNTksMTcuMzRMOS45NCwxNy4yMkw5LjMzLDE3LjA1TDguNzQsMTYuODNMOC4xOSwxNi41NUw3LjY4LDE2LjIyTDcuMjEsMTUuODRMNi43OCwxNS40TDYuNCwxNC45M0w2LjA2LDE0LjQyTDUuNzgsMTMuODdMNS41NSwxMy4yOUw1LjM3LDEyLjY4TDUuMjUsMTIuMDVMNS4xOSwxMS40MUw1LjE5LDEwLjc2TDUuMjUsMTAuMTJMNS4zNyw5LjVMNS41NSw4LjkxTDUuNzgsOC4zNUw2LjA2LDcuODNMNi40LDcuMzRMNi43OCw2LjlMNy4yMSw2LjVMNy42OCw2LjE2TDguMTksNS44NUw4Ljc0LDUuNTlMOS4zMyw1LjM4TDkuOTQsNS4yMkwxMC41OSw1LjFMMTIsNVoiLz48L3N2Zz4="
+                        class="coin item" data-index="${i}" data-type="coin" alt="Coin">
                 `;
                 gameGrid.appendChild(hole);
             }
@@ -370,7 +428,7 @@
             });
         }
 
-        // Handle click on chicken or bomb with improved hit detection
+        // Handle click on chicken, bomb, or item with improved hit detection
         function handleClick(event) {
             if (!gameStarted || gameEnded) return;
             
@@ -378,11 +436,14 @@
             // Get the parent hole element to improve hit detection
             const hole = element.closest('.hole');
             
-            // Check if there's an active chicken or bomb in this hole
+            // Check if there's an active element in this hole
             const activeChicken = hole.querySelector('.chicken.active');
             const activeBomb = hole.querySelector('.bomb.active');
+            const activeStar = hole.querySelector('.star.active');
+            const activePotion = hole.querySelector('.potion.active');
+            const activeCoin = hole.querySelector('.coin.active');
             
-            if (!activeChicken && !activeBomb) return;
+            if (!activeChicken && !activeBomb && !activeStar && !activePotion && !activeCoin) return;
             
             // Show mallet animation
             mallet.style.left = event.pageX + 'px';
@@ -390,22 +451,93 @@
             mallet.classList.add('active');
             setTimeout(() => mallet.classList.remove('active'), 200);
             
-            // Update score based on what's active
+            // Handle different active elements and their effects
             if (activeChicken) {
                 // Hide the chicken
                 activeChicken.classList.remove('active');
                 // Add points
                 playerScore += 10;
                 showHitEffect(event.pageX, event.pageY, '+10', '#4CAF50');
+                playSound('chicken');
             } else if (activeBomb) {
                 // Hide the bomb
                 activeBomb.classList.remove('active');
                 // Subtract points
                 playerScore = Math.max(0, playerScore - 15);
                 showHitEffect(event.pageX, event.pageY, '-15', '#F44336');
+                playSound('bomb');
+                shakeScreen();
+            } else if (activeStar) {
+                // Hide the star
+                activeStar.classList.remove('active');
+                // Double points for next 5 seconds
+                playerScore += 25;
+                showHitEffect(event.pageX, event.pageY, '+25', '#FFD700');
+                playSound('item');
+                showPowerupMessage('Ngôi sao! +25 điểm');
+            } else if (activePotion) {
+                // Hide the potion
+                activePotion.classList.remove('active');
+                // Speed boost for 5 seconds
+                playerScore += 15;
+                showHitEffect(event.pageX, event.pageY, '+15', '#5D3BE7');
+                playSound('item');
+                showPowerupMessage('Bình thuốc! +15 điểm');
+            } else if (activeCoin) {
+                // Hide the coin
+                activeCoin.classList.remove('active');
+                // Add extra points
+                playerScore += 20;
+                showHitEffect(event.pageX, event.pageY, '+20', '#F2993C');
+                playSound('coin');
+                showPowerupMessage('Đồng xu! +20 điểm');
             }
             
+            // Update the score display
             playerScoreElement.textContent = playerScore;
+        }
+        
+        // Play sound effect
+        function playSound(type) {
+            // Since we can't use actual audio files, we'll simulate sound with console logs
+            console.log(`Playing sound: ${type}`);
+            // In a real implementation with audio files allowed, we would use:
+            // const sound = new Audio('path/to/sound.mp3');
+            // sound.play();
+        }
+        
+        // Show powerup message
+        function showPowerupMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-4 py-2 rounded-full shadow-lg z-50';
+            messageElement.textContent = message;
+            messageElement.style.opacity = '0';
+            messageElement.style.transition = 'opacity 0.3s ease-in-out';
+            document.body.appendChild(messageElement);
+            
+            // Fade in
+            setTimeout(() => {
+                messageElement.style.opacity = '1';
+            }, 10);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                messageElement.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(messageElement)) {
+                        document.body.removeChild(messageElement);
+                    }
+                }, 300);
+            }, 2000);
+        }
+        
+        // Shake screen effect
+        function shakeScreen() {
+            const gameArea = document.querySelector('.game-area');
+            gameArea.classList.add('shake-effect');
+            setTimeout(() => {
+                gameArea.classList.remove('shake-effect');
+            }, 500);
         }
 
         // Show hit effect (+10 or -15) with improved animation
@@ -521,10 +653,13 @@
             }
         }
 
-        // Start chicken and bomb appearances
+        // Start chicken, bomb, and item appearances
         function startChickenAndBombAppearances() {
             const chickens = document.querySelectorAll('.chicken');
             const bombs = document.querySelectorAll('.bomb');
+            const stars = document.querySelectorAll('.star');
+            const potions = document.querySelectorAll('.potion');
+            const coins = document.querySelectorAll('.coin');
             
             function showRandomChickens() {
                 if (!gameStarted || gameEnded) return;
@@ -532,7 +667,10 @@
                 // Determine how many chickens to show (1-3)
                 const chickenCount = Math.floor(Math.random() * 3) + 1;
                 const availableIndices = Array.from({ length: chickens.length }, (_, i) => i)
-                    .filter(i => !chickens[i].classList.contains('active') && !bombs[i].classList.contains('active'));
+                    .filter(i => {
+                        const hole = chickens[i].closest('.hole');
+                        return !hole.querySelector('.active'); // Kiểm tra không có item nào đang active trong lỗ này
+                    });
                 
                 // If not enough holes available, show as many as possible
                 const showCount = Math.min(chickenCount, availableIndices.length);
@@ -546,7 +684,7 @@
                     const chicken = chickens[index];
                     chicken.classList.add('active');
                     
-                    // Hide the chicken after 0.65 seconds (tăng 30% so với 0.5s)
+                    // Hide the chicken after 0.65 seconds
                     setTimeout(() => {
                         if (chicken.classList.contains('active')) {
                             chicken.classList.remove('active');
@@ -563,7 +701,10 @@
                 
                 // Pick a random bomb
                 const availableIndices = Array.from({ length: bombs.length }, (_, i) => i)
-                    .filter(i => !chickens[i].classList.contains('active') && !bombs[i].classList.contains('active'));
+                    .filter(i => {
+                        const hole = bombs[i].closest('.hole');
+                        return !hole.querySelector('.active'); // Kiểm tra không có item nào đang active trong lỗ này
+                    });
                 
                 if (availableIndices.length === 0) return;
                 
@@ -585,9 +726,70 @@
                 setTimeout(showRandomBomb, 1500 + Math.random() * 1500);
             }
             
+            function showRandomItem() {
+                if (!gameStarted || gameEnded) return;
+                
+                // Only show items occasionally (20% chance)
+                if (Math.random() > 0.2) {
+                    setTimeout(showRandomItem, 3000 + Math.random() * 3000);
+                    return;
+                }
+                
+                // Choose which type of item to show
+                const itemTypes = [
+                    { elements: stars, chance: 0.3 },
+                    { elements: potions, chance: 0.3 },
+                    { elements: coins, chance: 0.4 }
+                ];
+                
+                // Random selection based on chance
+                const random = Math.random();
+                let selectedType;
+                let sum = 0;
+                
+                for (const type of itemTypes) {
+                    sum += type.chance;
+                    if (random <= sum) {
+                        selectedType = type.elements;
+                        break;
+                    }
+                }
+                
+                // Find available holes for the item
+                const availableIndices = Array.from({ length: selectedType.length }, (_, i) => i)
+                    .filter(i => {
+                        const hole = selectedType[i].closest('.hole');
+                        return !hole.querySelector('.active'); // Kiểm tra không có item nào đang active trong lỗ này
+                    });
+                
+                if (availableIndices.length === 0) {
+                    setTimeout(showRandomItem, 3000 + Math.random() * 3000);
+                    return;
+                }
+                
+                // Pick a random index
+                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                const item = selectedType[randomIndex];
+                
+                // Show the item
+                item.classList.add('active');
+                
+                // Hide after a random time (800-1200ms)
+                const hideDelay = 800 + Math.random() * 400;
+                setTimeout(() => {
+                    if (item.classList.contains('active')) {
+                        item.classList.remove('active');
+                    }
+                }, hideDelay);
+                
+                // Schedule next item appearance
+                setTimeout(showRandomItem, 3000 + Math.random() * 3000);
+            }
+            
             // Start the appearances
             showRandomChickens();
             showRandomBomb();
+            showRandomItem();
         }
 
         // Create confetti effect for high score
