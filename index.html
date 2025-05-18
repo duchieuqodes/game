@@ -62,8 +62,14 @@
             transform: translateX(-50%);
             transition: bottom 0.1s ease-in;
             cursor: pointer;
-            width: 80%;
+            width: 85%; /* Tăng kích thước để dễ bấm hơn */
             height: auto;
+        }
+        
+        .chicken {
+            /* Thêm vùng nhấp chuột thoải mái hơn cho gà */
+            padding: 5px;
+            margin: -5px;
         }
 
         .chicken.active, .bomb.active {
@@ -364,12 +370,19 @@
             });
         }
 
-        // Handle click on chicken or bomb
+        // Handle click on chicken or bomb with improved hit detection
         function handleClick(event) {
             if (!gameStarted || gameEnded) return;
             
             const element = event.target;
-            if (!element.classList.contains('active')) return;
+            // Get the parent hole element to improve hit detection
+            const hole = element.closest('.hole');
+            
+            // Check if there's an active chicken or bomb in this hole
+            const activeChicken = hole.querySelector('.chicken.active');
+            const activeBomb = hole.querySelector('.bomb.active');
+            
+            if (!activeChicken && !activeBomb) return;
             
             // Show mallet animation
             mallet.style.left = event.pageX + 'px';
@@ -377,14 +390,17 @@
             mallet.classList.add('active');
             setTimeout(() => mallet.classList.remove('active'), 200);
             
-            // Hide the element
-            element.classList.remove('active');
-            
-            // Update score
-            if (element.classList.contains('chicken')) {
+            // Update score based on what's active
+            if (activeChicken) {
+                // Hide the chicken
+                activeChicken.classList.remove('active');
+                // Add points
                 playerScore += 10;
                 showHitEffect(event.pageX, event.pageY, '+10', '#4CAF50');
-            } else if (element.classList.contains('bomb')) {
+            } else if (activeBomb) {
+                // Hide the bomb
+                activeBomb.classList.remove('active');
+                // Subtract points
                 playerScore = Math.max(0, playerScore - 15);
                 showHitEffect(event.pageX, event.pageY, '-15', '#F44336');
             }
@@ -530,12 +546,12 @@
                     const chicken = chickens[index];
                     chicken.classList.add('active');
                     
-                    // Hide the chicken after exactly 0.5 seconds
+                    // Hide the chicken after 0.65 seconds (tăng 30% so với 0.5s)
                     setTimeout(() => {
                         if (chicken.classList.contains('active')) {
                             chicken.classList.remove('active');
                         }
-                    }, 500);
+                    }, 650);
                 });
                 
                 // Schedule next chicken appearances
