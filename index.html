@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đập Gà - Trò Chơi Offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #FF9633;
+            --secondary: #FFC93C;
+            --background: #FFFBE9;
+            --hole: #8B4513;
+            --grass: #66a103;
+        }
+
+        .dark {
+            --primary: #FF9633;
+            --secondary: #FFC93C;
+            --background: #1e1e1e;
+            --hole: #502912;
+            --grass: #446b02;
+        }
+
+        body {
+            font-family: 'Baloo 2', cursive;
+            background-color: var(--background);
+            transition: background-color 0.3s;
+            overflow-x: hidden;
+        }
+
+        .game-title {
+            text-shadow: 3px 3px 0 #FF5722, 
+                        -1px -1px 0 #FF5722, 
+                        1px -1px 0 #FF5722, 
+                        -1px 1px 0 #FF5722, 
+                        1px 1px 0 #FF5722;
+        }
+
+        .dark .game-title {
+            text-shadow: 3px 3px 0 #FF7043, 
+                        -1px -1px 0 #FF7043, 
+                        1px -1px 0 #FF7043, 
+                        -1px 1px 0 #FF7043, 
+                        1px 1px 0 #FF7043;
+        }
+
+        .hole {
+            background-color: var(--hole);
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 10px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .chicken, .bomb {
+            position: absolute;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 0.1s ease-in;
+            cursor: pointer;
+            width: 80%;
+            height: auto;
+        }
+
+        .chicken.active, .bomb.active {
+            bottom: 0;
+        }
+
+        .grass {
+            position: absolute;
+            top: -10px;
+            width: 100%;
+            height: 20px;
+            background-color: var(--grass);
+            border-radius: 50% 50% 0 0;
+            z-index: 10;
+        }
+
+        .mallet {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0E1MjkyOSIgZD0iTTgsM0wxMiwxVjIuNUg4WiIvPjxwYXRoIGZpbGw9IiM4QjRDMjkiIGQ9Ik0xMiwyLjVWMUwxNiwzSDE2VjIuNUgxMloiLz48cGF0aCBmaWxsPSIjQjc2RTRBIiBkPSJNOCwzVjguNUgxNlYzSDE2TDEyLDEuNUw4LDNaIi8+PHBhdGggZmlsbD0iIzc4MzQxQyIgZD0iTTE1LDguNUgxNlYxOUgxNVoiLz48cGF0aCBmaWxsPSIjNjIyNjEzIiBkPSJNOSw4LjVIOFYxOUg5WiIvPjxwYXRoIGZpbGw9IiM4QjRDMjkiIGQ9Ik05LDguNUgxNVYxOUg5WiIvPjxwYXRoIGZpbGw9IiM1RjNCMjEiIGQ9Ik0xMiwxOVYyM0gxMlYxOUgxNUgxMkg5SDB6Ii8+PC9zdmc+');
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%) rotate(45deg);
+            display: none;
+        }
+
+        .mallet.active {
+            display: block;
+            animation: swing 0.2s ease-in-out;
+        }
+
+        @keyframes swing {
+            0% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.2); }
+            100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+        }
+
+        .game-area {
+            background: linear-gradient(to bottom, #8bd645 0%, #66a103 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark .game-area {
+            background: linear-gradient(to bottom, #557d2e 0%, #446b02 100%);
+        }
+
+        .score-display {
+            background-color: var(--primary);
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            padding: 10px 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .score-display:hover {
+            transform: scale(1.05);
+        }
+
+        .countdown {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hit-effect {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            animation: floatUp 1s ease-out;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Mallet cursor -->
+    <div id="mallet" class="mallet"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 class="text-4xl md:text-6xl font-bold text-center mb-6 text-yellow-500 game-title">ĐẬP GÀ</h1>
+        <div class="w-full max-w-md p-6 rounded-2xl shadow-2xl bg-white dark:bg-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Nhập tên người chơi</h2>
+            <input 
+                type="text" 
+                id="username-input" 
+                class="w-full p-3 text-base border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 dark:text-white" 
+                placeholder="Username của bạn"
+                maxlength="15"
+            >
+            <button id="start-btn" class="btn-primary w-full">Bắt Đầu</button>
+        </div>
+    </div>
+
+    <!-- Waiting Screen -->
+    <div id="waiting-screen" class="hidden flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 class="text-4xl md:text-6xl font-bold text-center mb-6 text-yellow-500 game-title">ĐẬP GÀ</h1>
+        <div class="w-full max-w-md p-6 rounded-2xl shadow-2xl bg-white dark:bg-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">Chờ đến <span class="text-yellow-500">21:30</span> để bắt đầu</h2>
+            <div class="countdown text-center mb-6" id="countdown">--:--:--</div>
+            
+            <div>
+                <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-white">Hướng dẫn chơi</h3>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                    <li>Nhấp vào gà để kiếm điểm (+10 điểm)</li>
+                    <li>Tránh nhấp vào bom (-15 điểm)</li>
+                    <li>Trò chơi kéo dài 10 phút</li>
+                    <li>Cố gắng đạt điểm cao nhất có thể!</li>
+                </ul>
+            </div>
+
+            <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg text-yellow-700 dark:text-yellow-300">
+                <p class="text-sm"><strong>Lưu ý:</strong> Trò chơi này chỉ có thể chơi một lần mỗi ngày vào lúc 21:30.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden p-4 min-h-screen flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl md:text-4xl font-bold text-yellow-500 game-title">ĐẬP GÀ</h1>
+            <div class="flex items-center">
+                <div class="score-display mr-4">
+                    <div class="text-sm">Điểm của bạn</div>
+                    <div id="player-score" class="text-2xl font-bold">0</div>
+                </div>
+                <div class="score-display">
+                    <div class="text-sm">Thời gian</div>
+                    <div id="game-timer" class="text-2xl font-bold">10:00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area flex-1 mb-4">
+            <div id="game-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+                <!-- Holes will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="hidden flex flex-col items-center justify-center min-h-screen p-4">
+        <h1 class="text-4xl md:text-6xl font-bold text-center mb-6 text-yellow-500 game-title">KẾT THÚC GAME</h1>
+        <div class="w-full max-w-md p-6 rounded-2xl shadow-2xl bg-white dark:bg-gray-800">
+            <h2 class="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">Kết quả của bạn</h2>
+            
+            <div class="mb-6 text-center">
+                <p class="text-xl font-bold text-gray-800 dark:text-white">Xin chúc mừng <span id="result-username" class="text-yellow-500">Người chơi</span>!</p>
+                <p class="text-lg mt-2">Bạn đã đạt được <span id="final-score" class="text-3xl font-bold text-yellow-500">0</span> điểm.</p>
+            </div>
+            
+            <div class="flex flex-col items-center space-y-3 mb-6">
+                <div class="w-full">
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <span>Điểm cao nhất của bạn trước đây</span>
+                        <span id="highest-score">0</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                        <div id="score-bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-xl mb-6">
+                <p class="text-sm text-gray-600 dark:text-gray-400">Trò chơi chỉ được mở vào lúc 21:30 mỗi ngày.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Hãy quay lại vào ngày mai!</p>
+            </div>
+            
+            <button id="return-btn" class="btn-primary w-full">Trở Về Trang Chính</button>
+        </div>
+    </div>
+
+    <script>
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Game variables
+        let username = '';
+        let playerScore = 0;
+        let gameStarted = false;
+        let gameEnded = false;
+        let targetStartTime; // Set to 21:30 today
+        let gameEndTime; // 10 minutes after start
+        let gamePlayedToday = false; // Flag to track if the game has been played today
+        
+        // Constant for demo mode (for testing - set to true to start immediately)
+        const DEMO_MODE = false;
+
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const waitingScreen = document.getElementById('waiting-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const usernameInput = document.getElementById('username-input');
+        const startBtn = document.getElementById('start-btn');
+        const playerScoreElement = document.getElementById('player-score');
+        const gameTimer = document.getElementById('game-timer');
+        const gameGrid = document.getElementById('game-grid');
+        const countdown = document.getElementById('countdown');
+        const resultUsername = document.getElementById('result-username');
+        const finalScore = document.getElementById('final-score');
+        const highestScore = document.getElementById('highest-score');
+        const scoreBar = document.getElementById('score-bar');
+        const returnBtn = document.getElementById('return-btn');
+        const mallet = document.getElementById('mallet');
+
+        // Check if the game has been played today
+        function checkGamePlayedToday() {
+            const lastPlayedDate = localStorage.getItem('whackChickenLastPlayed');
+            
+            if (lastPlayedDate) {
+                const today = new Date().toDateString();
+                gamePlayedToday = (lastPlayedDate === today);
+            }
+            
+            return gamePlayedToday;
+        }
+
+        // Initialize game
+        function initGame() {
+            // Generate chicken holes
+            gameGrid.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole aspect-square';
+                hole.innerHTML = `
+                    <div class="grass"></div>
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iI0ZGRTc3NyIgZD0iTTEyLDJDMTUuMzEsMkgxNy4xMkMxOC43NiwyIDIwLDMuMjQgMjAsNC44OEMyMCw3LjM4IDE3LjMxLDkuMjIgMTUsMTAuNUMxNCwxMS4xNSAxMywxMi4wNSAxMywxM0MxMywxMy45NyAxMy45LDE1LjUgMTUsMTYuNUMxNywxOCAxOS4xMSwyMCAyMCwyMUgxMkg0QzUsMjAgNi44OCwxOSA4LjUsMThDOS41LDE3LjUgMTEsMTYuMjUgMTEsMTQuNUMxMSwxMy41IDEwLDEyLjEgOSwxMS41QzYsOSA0LDcgNCw0LjlDNCwzLjI0IDUuMjQsMiA2Ljg4LDJIOSIvPjxwYXRoIGZpbGw9IiNGRjlBMDAiIGQ9Ik05LDEzSDcuNVY5SDlWMTNaTTE2LjUsMTNIMTVWOUgxNi41VjEzWiIvPjxwYXRoIGZpbGw9IiNFNjU3MDAiIGQ9Ik0xMywyMEgxMUMxMSwxOSAxMC40NiwxNyA5LDE2SDE1QzEzLjYsMTcgMTMsMTkgMTMsMjBaIi8+PHBhdGggZmlsbD0iI0ZGNTU1NSIgZD0iTTEyLDcuNUMxMC4yOCw3LjUgOS40LDguMjUgOSw5LjVDMTAsOS41IDExLjUsOS41IDEyLDkuNUMxMi4zMSw5LjUgMTQsOS40NSAxNSw5LjVDMTQuNSw4LjIgMTMuNzgsNy41IDEyLDcuNVoiLz48L3N2Zz4=" 
+                        class="chicken" data-index="${i}" alt="Chicken">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzMzMzMzMyIgZD0iTTExLjUsNUw4LDJMMiw4TDUsMTEuNUwxMS41LDVaIi8+PHBhdGggZmlsbD0iI0ZGRTc3NyIgZD0iTTIwLDE1TDIwLDEyLjUiLz48cGF0aCBmaWxsPSIjRkZDRTAwIiBkPSJNMTMuNSw3TDEwLDEwLjVMMTMuNSwxNEwxNywxMC41TDEzLjUsN1oiLz48cGF0aCBmaWxsPSIjRkYwMDAwIiBkPSJNMjAsNUgxNy41TDE1LDEuNUwxMi41LDVIMTBMMTI1LDEwLjVMMTAsMTZIMTIuNUwxNSwxOS41TDE3LjUsMTZIMjBMMTcuNSwxMC41TDIwLDVaIi8+PC9zdmc+" 
+                        class="bomb" data-index="${i}" alt="Bomb">
+                `;
+                gameGrid.appendChild(hole);
+            }
+            
+            // Add click listeners to chickens and bombs
+            document.querySelectorAll('.chicken, .bomb').forEach(element => {
+                element.addEventListener('click', handleClick);
+            });
+            
+            // Follow cursor with mallet
+            document.addEventListener('mousemove', (e) => {
+                mallet.style.left = e.pageX + 'px';
+                mallet.style.top = e.pageY + 'px';
+            });
+            
+            // Ensure the mallet works on touch devices
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches[0]) {
+                    mallet.style.left = e.touches[0].pageX + 'px';
+                    mallet.style.top = e.touches[0].pageY + 'px';
+                }
+            });
+        }
+
+        // Initialize game settings
+        function initGameSettings() {
+            // Set the target start time for 21:30 today
+            const now = new Date();
+            targetStartTime = new Date(now);
+            targetStartTime.setHours(21, 30, 0, 0);
+            
+            // If it's already past 21:30, set for tomorrow
+            if (now > targetStartTime && !DEMO_MODE) {
+                targetStartTime.setDate(targetStartTime.getDate() + 1);
+            }
+            
+            // For demo purposes, start after 5 seconds
+            if (DEMO_MODE) {
+                targetStartTime = new Date(Date.now() + 5 * 1000);
+            }
+            
+            // Game will last 10 minutes
+            gameEndTime = new Date(targetStartTime.getTime() + 10 * 60 * 1000);
+            
+            // Check if the game has already been played today
+            if (checkGamePlayedToday() && !DEMO_MODE) {
+                showAlreadyPlayedMessage();
+            }
+        }
+
+        // Show message if the game was already played today
+        function showAlreadyPlayedMessage() {
+            loginScreen.classList.add('hidden');
+            waitingScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            
+            // Display results screen with a message
+            resultsScreen.classList.remove('hidden');
+            returnBtn.textContent = "Đã chơi hôm nay. Quay lại ngày mai!";
+            returnBtn.disabled = true;
+            returnBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        // Handle click on chicken or bomb
+        function handleClick(event) {
+            if (!gameStarted || gameEnded) return;
+            
+            const element = event.target;
+            if (!element.classList.contains('active')) return;
+            
+            // Show mallet animation
+            mallet.style.left = event.pageX + 'px';
+            mallet.style.top = event.pageY + 'px';
+            mallet.classList.add('active');
+            setTimeout(() => mallet.classList.remove('active'), 200);
+            
+            // Hide the element
+            element.classList.remove('active');
+            
+            // Update score
+            if (element.classList.contains('chicken')) {
+                playerScore += 10;
+                showHitEffect(event.pageX, event.pageY, '+10', '#4CAF50');
+            } else if (element.classList.contains('bomb')) {
+                playerScore = Math.max(0, playerScore - 15);
+                showHitEffect(event.pageX, event.pageY, '-15', '#F44336');
+            }
+            
+            playerScoreElement.textContent = playerScore;
+        }
+
+        // Show hit effect (+10 or -15)
+        function showHitEffect(x, y, text, color) {
+            const effect = document.createElement('div');
+            effect.className = 'hit-effect';
+            effect.textContent = text;
+            effect.style.color = color;
+            effect.style.left = x + 'px';
+            effect.style.top = y + 'px';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => {
+                document.body.removeChild(effect);
+            }, 1000);
+        }
+
+        // Start the game countdown
+        function startGameCountdown() {
+            const countdownInterval = setInterval(() => {
+                const now = new Date();
+                const diff = targetStartTime - now;
+                
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    startGame();
+                } else {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    
+                    countdown.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        // Start the game
+        function startGame() {
+            gameStarted = true;
+            gameEnded = false;
+            waitingScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            
+            // Start the game timer
+            const gameTimerInterval = setInterval(() => {
+                const now = new Date();
+                const timeRemaining = Math.max(0, Math.floor((gameEndTime - now) / 1000));
+                
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                gameTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(gameTimerInterval);
+                    endGame();
+                }
+            }, 1000);
+            
+            // Start chicken and bomb appearances
+            startChickenAndBombAppearances();
+            
+            // Mark that the game has been played today
+            localStorage.setItem('whackChickenLastPlayed', new Date().toDateString());
+        }
+
+        // End the game
+        function endGame() {
+            gameStarted = false;
+            gameEnded = true;
+            gameScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            // Save score
+            const savedHighScore = parseInt(localStorage.getItem('whackChickenHighScore') || '0');
+            const newHighScore = Math.max(savedHighScore, playerScore);
+            localStorage.setItem('whackChickenHighScore', newHighScore.toString());
+            
+            // Update results screen
+            resultUsername.textContent = username;
+            finalScore.textContent = playerScore;
+            highestScore.textContent = savedHighScore;
+            
+            // Update score bar
+            const percentage = savedHighScore > 0 ? Math.min(100, Math.floor((playerScore / savedHighScore) * 100)) : 100;
+            scoreBar.style.width = `${percentage}%`;
+            
+            // Show confetti if it's a high score
+            if (playerScore > savedHighScore) {
+                createConfetti();
+                highestScore.textContent = playerScore + ' (Kỷ lục mới!)';
+            }
+        }
+
+        // Start chicken and bomb appearances
+        function startChickenAndBombAppearances() {
+            const chickens = document.querySelectorAll('.chicken');
+            const bombs = document.querySelectorAll('.bomb');
+            
+            function showRandomChicken() {
+                if (!gameStarted || gameEnded) return;
+                
+                // Pick a random chicken
+                const randomIndex = Math.floor(Math.random() * chickens.length);
+                const chicken = chickens[randomIndex];
+                
+                // Make sure the corresponding bomb is not active
+                const correspondingBomb = bombs[randomIndex];
+                if (correspondingBomb.classList.contains('active')) return;
+                
+                // Show the chicken
+                chicken.classList.add('active');
+                
+                // Hide the chicken after a random time (500-1500ms)
+                const hideDelay = 500 + Math.random() * 1000;
+                setTimeout(() => {
+                    chicken.classList.remove('active');
+                }, hideDelay);
+                
+                // Schedule next chicken appearance
+                setTimeout(showRandomChicken, 300 + Math.random() * 500);
+            }
+            
+            function showRandomBomb() {
+                if (!gameStarted || gameEnded) return;
+                
+                // Pick a random bomb
+                const randomIndex = Math.floor(Math.random() * bombs.length);
+                const bomb = bombs[randomIndex];
+                
+                // Make sure the corresponding chicken is not active
+                const correspondingChicken = chickens[randomIndex];
+                if (correspondingChicken.classList.contains('active')) return;
+                
+                // Show the bomb
+                bomb.classList.add('active');
+                
+                // Hide the bomb after a random time (500-1200ms)
+                const hideDelay = 500 + Math.random() * 700;
+                setTimeout(() => {
+                    bomb.classList.remove('active');
+                }, hideDelay);
+                
+                // Schedule next bomb appearance
+                setTimeout(showRandomBomb, 1000 + Math.random() * 2000);
+            }
+            
+            // Start the appearances
+            showRandomChicken();
+            showRandomBomb();
+        }
+
+        // Create confetti effect for high score
+        function createConfetti() {
+            const colors = ['#FFD700', '#FF9633', '#FF5733', '#C70039', '#900C3F', '#581845'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    document.body.removeChild(confetti);
+                }, 3000);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start button event listener
+            startBtn.addEventListener('click', () => {
+                username = usernameInput.value.trim();
+                if (username.length < 3) {
+                    alert('Vui lòng nhập tên người chơi (ít nhất 3 ký tự)');
+                    return;
+                }
+                
+                // Initialize game settings
+                initGameSettings();
+                
+                if (gamePlayedToday && !DEMO_MODE) {
+                    showAlreadyPlayedMessage();
+                    return;
+                }
+                
+                loginScreen.classList.add('hidden');
+                waitingScreen.classList.remove('hidden');
+                
+                // Start countdown
+                startGameCountdown();
+            });
+            
+            // Return button
+            returnBtn.addEventListener('click', () => {
+                location.reload();
+            });
+            
+            // Initialize the game grid
+            initGame();
+        });
+    </script>
+</body>
+</html>
